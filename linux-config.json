@@ -1,0 +1,52 @@
+#!/bin/bash
+cd /tmp
+wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+
+sudo rpm -U amazon-cloudwatch-agent.rpm
+#sudo vi /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+echo '{
+  "agent": {
+    "metrics_collection_interval": 10,
+    "run_as_user": "cwagent"
+  },
+  "metrics": {
+    "append_dimensions": {
+        "InstanceId": "${aws:InstanceId}"
+    },
+    "metrics_collected": {
+      "disk": {
+        "measurement": [
+          "used_percent",
+          "disk_inodes_free",
+          "disk_free",
+          "disk_used",
+          "disk_total",
+          "disk_inodes_total",
+          "disk_inodes_used"
+        ],
+        "metrics_collection_interval": 10,
+        "resources": [
+          "/"
+        ]
+      },
+	   "mem": {
+            "measurement": [
+              "mem_used",
+              "mem_cached",
+              "mem_total",
+			  "mem_free",
+			  "mem_used_percent",
+			  "mem_buffered",
+			  "mem_available_percent",
+			  "mem_available",
+			  "mem_active",
+			  "mem_inactive"
+            ],
+            "metrics_collection_interval": 1
+          }
+    }
+  }
+}' >> /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+sudo systemctl restart amazon-cloudwatch-agent
+#tail -f /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
